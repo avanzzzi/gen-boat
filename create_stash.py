@@ -12,11 +12,10 @@ def create_item(item_type: str, item_id: int):
         item['x'] = randint(5, 10)
         item['y'] = randint(10, 100)
         item['z'] = uniform(0.1, 2)
-        item['mass'] = randint(100, 1000)
+        item['mass'] = randint(120, 1000)
 
         item['area'] = item['x']*item['y']
         item['volume'] = item['x']*item['y']*item['z']
-        # item['density'] = item['mass']/item['volume']
     elif item_type == 'leaf':
         item['x'] = randint(1, 3)
         item['y'] = randint(5, 10)
@@ -25,7 +24,6 @@ def create_item(item_type: str, item_id: int):
 
         item['area'] = 0
         item['volume'] = item['x']*item['y']*item['z']
-        # item['density'] = item['mass']/item['volume']
     elif item_type == 'rope':
         item['x'] = uniform(0.5, 1)
         item['y'] = uniform(0.5, 1)
@@ -34,7 +32,6 @@ def create_item(item_type: str, item_id: int):
 
         item['area'] = 0
         item['volume'] = item['x']*item['y']*item['z']
-        # item['density'] = item['mass']/item['volume']
     if item_type == 'metal':
         item['x'] = randint(50, 100)
         item['y'] = randint(50, 100)
@@ -43,7 +40,6 @@ def create_item(item_type: str, item_id: int):
 
         item['area'] = item['x']*item['y']
         item['volume'] = item['x']*item['y']*item['z']
-        # item['density'] = item['mass']/item['volume']
 
     return item
 

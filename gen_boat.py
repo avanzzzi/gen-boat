@@ -1,6 +1,7 @@
 from create_stash import STASH_FILE
-from json import load, dump
+from json import load
 from random import randint, uniform
+from itertools import chain
 
 MIN_AREA = 100000  # 10m2
 MAX_DENS = 1
@@ -28,18 +29,23 @@ def calc_fitness(indiv):
     tv = sum([item['volume'] for item in indiv['items']])
     ta = sum([item['area'] for item in indiv['items']])
 
+    dens = tm / tv
+    fit = ta/dens**3
+
     indiv['area'] = ta
-    indiv['dens'] = tm / tv
-    indiv['fitness'] = 1 / indiv['dens']
+    indiv['fitness'] = fit
+    indiv['dens'] = dens
 
     return indiv
 
 
 def pop_review(pop):
-    reviewed = map(calc_fitness, pop)
-    better_indiv = max(reviewed, key=lambda x: x['fitness'])
+    reviewed = list(map(calc_fitness, pop))
+    fit_max = max(reviewed, key=lambda x: x['fitness'])
+    fit_min = min(reviewed, key=lambda x: x['fitness'])
+    review = {'max': fit_max, 'min': fit_min}
 
-    return better_indiv
+    return review
 
 
 def create_individual():
@@ -61,6 +67,7 @@ def create_population(n):
 
 def selection(pop):
     max_f = sum([indiv['fitness'] for indiv in pop])
+
     pick = uniform(0, max_f)
     current = 0
     for indiv in pop:
@@ -69,7 +76,18 @@ def selection(pop):
             return indiv
 
 
-def cross(indiv1, indiv2):
+def mutation(indiv):
+    if len(stash) > 0:
+        new_item = stash.pop(randint(0, len(stash) - 1))
+        indiv['items'][randint(0, len(indiv['items']) - 1)] = new_item
+
+    return indiv
+
+
+def cross(indivs):
+    indiv1 = indivs[0]
+    indiv2 = indivs[1]
+
     range_max = min(len(indiv1['items']), len(indiv2['items']))
     cut_point = randint(0, range_max)
 
@@ -88,41 +106,76 @@ def cross(indiv1, indiv2):
     return indiv3, indiv4
 
 
-# def all_cross(indivs):
-    # crossed = map(cross, list(zip(indivs, indivs[1:])))
-    # return list(crossed)
+def all_cross(indivs):
+    crossed = map(cross, list(zip(indivs[0::2], indivs[1::2])))
+    return list(chain.from_iterable(crossed))
 
 
-def show_individual(indiv):
-    print("id: {}, f: {}, d: {}, a: {}, g: {}".format(indiv['id'],
-                                                      indiv['fitness'],
-                                                      indiv['dens'],
-                                                      indiv['area'],
-                                                      indiv['generation']))
+def validate(indiv):
+    keys = [item['id'] for item in indiv['items']]
+    dups = [i for i, x in enumerate(keys) if keys.count(x) > 1]
+
+    if len(dups) > 0:
+        print("Duplicated item found")
+        return False
+
+    return True
+
+
+def select(pop):
+    selected = []
+    while len(selected) < len(pop):
+        indiv1 = selection(pop)
+        indiv2 = selection(pop)
+
+        while indiv1 == indiv2:
+            indiv2 = selection(pop)
+
+        selected.extend([indiv1, indiv2])
+
+    return selected
+
+
+def show_review(review, prefix=' '):
+    best = review['max']
+    print("[{}] {} {} {} {}".format(prefix,
+                                    best['id'],
+                                    round(best['dens'], 2),
+                                    best['area'],
+                                    best['generation']))
 
 
 if __name__ == '__main__':
+    # Initialize population
     load_stash()
     pop = create_population(40)
-    better = pop_review(pop)
-    show_individual(better)
 
+    # Review for initial reference
+    best_review = pop_review(pop)
+    show_review(best_review, 'i')
+
+    # Improve
     improvements = 0
-    while improvements < 20 or better['dens'] > MAX_DENS:
-        new_pop = []
-        while len(new_pop) < len(pop):
-            indiv1 = selection(pop)
-            indiv2 = selection(pop)
+    while improvements < 30 or best_review['max']['dens'] > MAX_DENS:
 
-            while indiv1 == indiv2:
-                indiv2 = selection(pop)
+        # Selection
+        selected = select(pop)
 
-            indiv3, indiv4 = cross(indiv1, indiv2)
-            new_pop.extend([indiv3, indiv4])
+        # Crossover
+        new_pop = all_cross(selected)
 
-        review = pop_review(new_pop)
-        if review['fitness'] > better['fitness']:
+        # Mutation
+        new_pop.append(mutation(best_review['min']))
+
+        # Review and check improvement
+        current_review = pop_review(new_pop)
+        if current_review['max']['fitness'] > (
+                best_review['max']['fitness']) and validate(
+                best_review['max']):
             improvements += 1
-            better = review
+            best_review = current_review
             pop = new_pop
-            show_individual(better)
+            show_review(best_review, '>')
+
+    # Show best result
+    show_review(best_review, '!')
