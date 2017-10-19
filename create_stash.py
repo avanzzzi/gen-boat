@@ -12,7 +12,7 @@ def create_item(item_type: str, item_id: int):
         item['x'] = randint(5, 10)
         item['y'] = randint(10, 100)
         item['z'] = uniform(0.1, 2)
-        item['mass'] = randint(120, 1000)
+        item['mass'] = randint(150, 1000)
 
         item['area'] = item['x']*item['y']
         item['volume'] = item['x']*item['y']*item['z']
@@ -55,7 +55,7 @@ def create_items(start_at: int, number: int, item_type: str):
 
 if __name__ == '__main__':
     items = []
-    items.extend(create_items(len(items), 10000, 'wood'))
+    items.extend(create_items(len(items), 100000, 'wood'))
     items.extend(create_items(len(items), 10000, 'leaf'))
     items.extend(create_items(len(items), 100, 'rope'))
     items.extend(create_items(len(items), 10, 'metal'))
