@@ -11,7 +11,8 @@ from itertools import chain
 MIN_AREA = 100000  # 10m2
 MAX_DENS = 1  # 1g/cm3
 INITIAL_POPULATION = 40
-IMPROVEMENTS = 30
+IMPROVEMENTS = 50
+OUTPUT = 'output.json'
 
 stash = None
 indiv_id = 0
@@ -57,7 +58,7 @@ def calc_fitness(indiv: dict) -> dict:
     ta = sum([item['area'] for item in indiv['items']])
 
     dens = tm / tv
-    fit = ta/dens**3
+    fit = ta/dens**2
 
     indiv['area'] = ta
     indiv['fitness'] = fit
@@ -239,11 +240,23 @@ def select(pop: list) -> list:
 def show_review(review: dict, prefix: str=' '):
     """Print review information."""
     best = review['max']
-    print("[{}] {} {} {} {}".format(prefix,
-                                    best['id'],
-                                    round(best['dens'], 2),
-                                    best['area'],
-                                    best['generation']))
+    info = "[{}] {} {} {} {} {}".format(prefix,
+                                        best['id'],
+                                        round(best['fitness'], 2),
+                                        round(best['dens'], 2),
+                                        best['area'],
+                                        best['generation'])
+    print(info)
+    with open(OUTPUT, 'a') as output:
+        output.write(info)
+        output.write('\n')
+
+
+def show_items(indiv: dict):
+    """
+    """
+    items = indiv['items']
+    print(items)
 
 
 if __name__ == '__main__':
@@ -285,3 +298,4 @@ if __name__ == '__main__':
 
     # Show best result
     show_review(best_review, '!')
+    show_items(best_review['max'])
