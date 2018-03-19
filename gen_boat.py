@@ -11,8 +11,8 @@ from itertools import chain
 MIN_AREA = 100000  # 10m2
 MAX_DENS = 1  # 1g/cm3
 INITIAL_POPULATION = 40
-IMPROVEMENTS = 50
-OUTPUT = 'output.json'
+IMPROVEMENTS = 100
+OUTPUT = 'output.txt'
 
 stash = None
 indiv_id = 0
@@ -242,8 +242,8 @@ def show_review(review: dict, prefix: str=' '):
     best = review['max']
     info = "[{}] {} {} {} {} {}".format(prefix,
                                         best['id'],
-                                        round(best['fitness'], 2),
-                                        round(best['dens'], 2),
+                                        str(round(best['fitness'], 2)).replace('.',','),
+                                        str(round(best['dens'], 2)).replace('.',','),
                                         best['area'],
                                         best['generation'])
     print(info)
@@ -298,4 +298,4 @@ if __name__ == '__main__':
 
     # Show best result
     show_review(best_review, '!')
-    show_items(best_review['max'])
+    # show_items(best_review['max'])
